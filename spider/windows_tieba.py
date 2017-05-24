@@ -1,6 +1,6 @@
 # coding:utf-8
 '''
-1、利用 selenium +phantomjs(Linuxs字符终端下) 模拟登录，获得登录cookies(已获得)
+1、利用 selenium +chrome(windows下) 模拟登录，获得登录cookies(已获得)
 2、再跟踪从登录到发文的过程中cookie的变化情况，拿到最终cookies(成功)
 3、如果跳过第2步（已注释的代码实现了其功能），直接以login_cookies能发文成功，则跳过第2步
 '''
@@ -9,30 +9,20 @@ import time
 import json
 import re
 import pprint
-import datetime
-import random
 
 import requests
 from selenium import webdriver
 
-from settings import mouse_crack, VCODE_DIC
+from settings import mouse_crack, VCODE_DIC, HEADERS
 
-HEADERS = {
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36",
-            "Accept-encoding": "gzip",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-            "Accept-Encoding": "gzip, deflate, sdch, br",
-            "Accept-Language": "en-US,en;q=0.8,zh-CN;q=0.6,zh;q=0.4,zh-TW;q=0.2",
-            "Cache-Control": "no-cache",
-            "Connection": "keep-alive",
-            }
 
 class Post(object):
 
     def __init__(self, username, password):
-        self.base_url =  "http://tieba.baidu.com/f?kw=临高房产&ie=utf-8"
+        self.base_url =  "http://tieba.baidu.com/f?kw=海口房产&ie=utf-8"
         self.session = requests.Session()  
-        # self._login(username, password)
+        # self.change_again_cookies(username, password)
+        self._login(username, password)
         # import pdb
         # pdb.set_trace()
         try:
@@ -42,7 +32,7 @@ class Post(object):
         if self._check_login():            
             print 'from cache...cookies...'
             pprint.pprint(self.session.cookies)    
-            self.post_data()
+            self.post_message()
         else:
             # 防止cookie过期失效
             self.session.cookies.clear()
@@ -79,9 +69,10 @@ class Post(object):
             self.session.cookies.update(cookies)
 
     def _login(self, username, password):
-        # import pdb
-        # pdb.set_trace()
-        driver = webdriver.PhantomJS()
+        url = "http://tieba.baidu.com/f?kw=海口房产&ie=utf-8"
+        # 这里可以用Chrome、Phantomjs等，如果没有加入环境变量，需要指定具体的位置
+        driver = webdriver.Chrome(executable_path="C:/Program Files (x86)/Google/Chrome/Application/chromedriver")
+        driver.maximize_window()
         driver.get(self.base_url)
         print("start login")
         chg_field = driver.find_element_by_class_name("u_login").find_element_by_class_name("u_menu_item")
@@ -158,7 +149,7 @@ class Post(object):
             vcode_url = 'https://tieba.baidu.com/cgi-bin/genimg?'+vcode_md5
             vcode_req = requests.get(vcode_url, headers=HEADERS, verify=False)
             # download the vcode img
-            with open('static/images/vcode_{}.jpg'\
+            with open('../static/images/vcode_{}.jpg'\
                     .format(datetime.datetime.now().strftime('%Y_%m_%d_%H_%m')),
                  'wb') as out:
                 out.write(vcode_req.content)
@@ -189,5 +180,3 @@ if __name__ == "__main__":
     login_name =  "狮子零零蛋123"
     login_passwd = "19910414ll"
     post = Post(login_name, login_passwd)
-    
-     
