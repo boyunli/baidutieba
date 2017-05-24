@@ -15,9 +15,15 @@
 '''
 
 import os
+import logging
+import logging.config
 
 from PIL import Image
 import cv2
+
+from spider.settings import LOGGING
+logging.config.dictConfig(LOGGING)
+logger = logging.getLogger('myocr')
 
 #因获取的验证码全部为灰度图，且基本没有噪点，所以无需二值化和去噪， 直接进行去干扰线
 
@@ -42,9 +48,9 @@ class PreProcess(object):
     def covert_to_opacity(self, image):
         width, height, z =  img.shape  #高、宽、通道3
             # threshold = 100
-            for i in xrange(width):
-                for j in xrange(height):
-                    pass
+        for i in xrange(width):
+            for j in xrange(height):
+                pass
 
     def InterferLine(self,Bpp,filename):
         '''
