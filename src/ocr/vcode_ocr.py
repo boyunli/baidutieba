@@ -20,7 +20,8 @@ import logging.config
 
 from PIL import Image
 import cv2
-
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from spider.settings import LOGGING
 logging.config.dictConfig(LOGGING)
 logger = logging.getLogger('myocr')
