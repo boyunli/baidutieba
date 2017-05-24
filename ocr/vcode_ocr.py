@@ -14,6 +14,9 @@
     达到根据“图片”就能返回识别正确的字符集的目标
 '''
 
+import os
+
+from PIL import Image
 import cv2
 
 #因获取的验证码全部为灰度图，且基本没有噪点，所以无需二值化和去噪， 直接进行去干扰线
@@ -35,6 +38,13 @@ class PreProcess(object):
         Bpp=cv2.threshold(GrayImage,127,255,cv2.THRESH_BINARY)
         cv2.imwrite('D://'+'1.jpg',Bpp[1])
         return Bpp
+    
+    def covert_to_opacity(self, image):
+        width, height, z =  img.shape  #高、宽、通道3
+            # threshold = 100
+            for i in xrange(width):
+                for j in xrange(height):
+                    pass
 
     def InterferLine(self,Bpp,filename):
         '''
@@ -122,12 +132,16 @@ class PreProcess(object):
 
 
 if __name__ == '__main__':
-    PP=PreProcess()
-    for root,dirs,files in os.walk(inpath):
-        for filename in files:
-            Img=cv2.imread(root+'/'+filename)#太坑，此处inpath不能包含中文路径
-            GrayImage=PP.ConvertToGray(Img,filename)
-            Bpp=PP.ConvertTo1Bpp(GrayImage,filename)
-            Bpp_new=PP.InterferLine(Bpp,filename)
-            b=PP.CutImage(Bpp_new,filename)
+    PP = PreProcess()
+    import pdb
+    pdb.set_trace()
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    pic_dir = os.path.join(base_dir, 'test/')
+    vcode_pics = os.listdir(pic_dir)
+    for filename in vcode_pics:
+        img = cv2.imread(pic_dir+filename)  #太坑，此处inpath不能包含中文路径
+        # GrayImage = PP.ConvertToGray(img, filename)
+        Bpp = PP.ConvertTo1Bpp(img, filename)
+        Bpp_new = PP.InterferLine(Bpp, filename)
+        b = PP.CutImage(Bpp_new, filename)
 
