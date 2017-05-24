@@ -65,7 +65,7 @@ class Post(object):
     def _get_cookies(self):
         """从文本中获得cookie
         """
-        with open("cookies/login_cookies.json") as f:
+        with open("../cookies/login_cookies.json") as f:
             cookies = json.load(f)
             self.session.cookies.update(cookies)
 
@@ -94,7 +94,7 @@ class Post(object):
         login_cookies = {item["name"] : item["value"] for item in cookies}     
         page_html = driver.page_source
         if self._check_login(page_html):
-            with open("cookies/login_cookies.json", "w") as f:
+            with open("../cookies/login_cookies.json", "w") as f:
                 json.dump(login_cookies, f)     
             self.session.cookies.update(login_cookies)
             print 'login success'
@@ -147,9 +147,11 @@ class Post(object):
             vcode_md5 = res_text['data']['vcode']["captcha_vcode_str"]
             data['vcode_md5'] = vcode_md5
             vcode_url = 'https://tieba.baidu.com/cgi-bin/genimg?'+vcode_md5
+            with open('../log/vcode_url.txt', 'a') as f:
+                f.write(vcode_url)
             vcode_req = requests.get(vcode_url, headers=HEADERS, verify=False)
-            # download the vcode img
-            with open('../static/images/vcode_{}.jpg'\
+            # download the vcode img, 注意验证码图片保存格式为.png， 
+            with open('../static/images/vcode_{}.png'\
                     .format(datetime.datetime.now().strftime('%Y_%m_%d_%H_%m')),
                  'wb') as out:
                 out.write(vcode_req.content)
