@@ -15,140 +15,71 @@
 '''
 
 import os
+import sys
 import logging
 import logging.config
 
-from PIL import Image
 import cv2
-import sys
+import numpy as np
+# from matplotlib import pyplot as plt
+from PIL import Image,ImageEnhance,ImageFilter
+
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from spider.settings import LOGGING
 logging.config.dictConfig(LOGGING)
 logger = logging.getLogger('myocr')
 
-#因获取的验证码全部为灰度图，且基本没有噪点，所以无需二值化和去噪， 直接进行去干扰线
+BASEDIR = os.path.dirname(os.path.abspath(__file__))
+ORIGINDIR = os.path.join(BASEDIR, 'images/origin/')
+RGBADIR = os.path.join(BASEDIR, 'images/rgba/')
+
+VCODEDIR = os.path.join(BASEDIR, 'images/vcode/')
+CORR_VCODEDIR = os.path.join(BASEDIR, 'images/corr_vcode/')
 
 class PreProcess(object):
-    """description of class"""
 
-    def ConvertToGray(self,Image,filename):
+    def trans_la_to_rgba(self, origin_img, filename):
         '''
-        灰度化
+        将透明底色变成白底(即图片mode从LA 转换成 RGBA)
         '''
-        GrayImage=cv2.cvtColor(Image,cv2.COLOR_BGR2GRAY)
-        return GrayImage
-       
-    def ConvertTo1Bpp(self,GrayImage,filename):
-        '''
-        二值化
-        '''
-        Bpp=cv2.threshold(GrayImage,127,255,cv2.THRESH_BINARY)
-        cv2.imwrite('D://'+'1.jpg',Bpp[1])
-        return Bpp
+        rgba_path = os.path.join(RGBADIR, filename)
+        logger.debug('rgba_path: {}'.format(rgba_path))
+        width, height = origin_img.size 
+        im_rgba = origin_img.convert('RGBA')      
+        new_rgba = Image.new('RGBA', im_rgba.size, 'white') 
+        new_rgba.paste(im_rgba, (0, 0, width, height), im_rgba)
+        new_rgba.save(rgba_path)
+        return new_rgba
     
-    def covert_to_opacity(self, image):
-        width, height, z =  img.shape  #高、宽、通道3
-            # threshold = 100
-        for i in xrange(width):
-            for j in xrange(height):
-                pass
-
-    def InterferLine(self,Bpp,filename):
+    def cut_two_pics(self, pic, filename):
         '''
-        去干扰线
+        分离验证码和九宫图中的汉字
         '''
-        for i in range(0,76):
-            for j in range(0,Bpp.shape[0]):
-                Bpp[j][i]=255
-        for i in range(161,Bpp.shape[1]):
-            for j in range(0,Bpp.shape[0]):
-                Bpp[j][i]=255        
-        m=1
-        n=1
-        for i in range(76,161):
-            while(m<Bpp.shape[0]-1):
-                if Bpp[m][i]==0:
-                    if Bpp[m+1][i]==0:
-                        n=m+1
-                    elif m>0 and Bpp[m-1][i]==0:
-                        n=m
-                        m=n-1
-                    else:
-                        n=m+1
-                    break
-                elif m!=Bpp.shape[0]:
-                    l=0
-                    k=0
-                    ll=m
-                    kk=m
-                    while(ll>0):
-                        if Bpp[ll][i]==0:
-                            ll=11-1
-                            l=l+1
-                        else:
-                            break
-                    while(kk>0):
-                        if Bpp[kk][i]==0:
-                            kk=kk-1
-                            k=k+1
-                        else:
-                            break
-                    if (l<=k and l!=0) or (k==0 and l!=0):
-                        m=m-1
-                    else:
-                        m=m+1
-                else:
-                    break
-                #endif
-            #endwhile
-            if m>0 and Bpp[m-1][i]==0 and Bpp[n-1][i]==0:
-                continue
-            else:
-                Bpp[m][i]=255
-                Bpp[n][i]=255
-            #endif
-        #endfor
-        return Bpp
+        vcode_path = os.path.join(VCODEDIR, filename)
+        corr_path = os.path.join(CORR_VCODEDIR, filename)
+        vcode_box = (0, 0, 240, 85)
+        corr_box = (0, 86, 240, 320)
+        vcode_region = pic.crop(vcode_box)
+        corr_region = pic.crop(corr_box)
+        vcode_region.save(vcode_path)
+        corr_region.save(corr_path)
+        return vcode_region
 
-    def CutImage(self,Bpp,filename):
-        b1=np.zeros((Bpp.shape[0],20))
-        for i in range(78,98):
-            for j in range(0,Bpp.shape[0]):
-                b1[j][i-78]=Bpp[j][i]
-        cv2.imwrite(outpath+filename.decode('gbk')[0].encode('gbk')+'_'+'%d' %(time.time()*1000)+str(random.randint(1000,9999))+'.png',b1)
-
-        b2=np.zeros((Bpp.shape[0],19))
-        for i in range(99,118):
-            for j in range(0,Bpp.shape[0]):
-                b2[j][i-99]=Bpp[j][i]
-        cv2.imwrite(outpath+filename.decode('gbk')[1].encode('gbk')+'_'+'%d' %(time.time()*1000)+str(random.randint(1000,9999))+'.png',b2)
-
-        b3=np.zeros((Bpp.shape[0],19))
-        for i in range(119,138):
-            for j in range(0,Bpp.shape[0]):
-                b3[j][i-119]=Bpp[j][i]
-        cv2.imwrite(outpath+filename.decode('gbk')[2].encode('gbk')+'_'+'%d' %(time.time()*1000)+str(random.randint(1000,9999))+'.png',b3)
-
-        b4=np.zeros((Bpp.shape[0],19))
-        for i in range(139,158):
-            for j in range(0,Bpp.shape[0]):
-                b4[j][i-139]=Bpp[j][i]
-        cv2.imwrite(outpath+filename.decode('gbk')[3].encode('gbk')+'_'+'%d' %(time.time()*1000)+str(random.randint(1000,9999))+'.png',b4)
-        #return (b1,b2,b3,b4)
-
-
+    
 
 if __name__ == '__main__':
-    PP = PreProcess()
-    import pdb
-    pdb.set_trace()
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    pic_dir = os.path.join(base_dir, 'test/')
-    vcode_pics = os.listdir(pic_dir)
-    for filename in vcode_pics:
-        img = cv2.imread(pic_dir+filename)  #太坑，此处inpath不能包含中文路径
-        # GrayImage = PP.ConvertToGray(img, filename)
-        Bpp = PP.ConvertTo1Bpp(img, filename)
-        Bpp_new = PP.InterferLine(Bpp, filename)
-        b = PP.CutImage(Bpp_new, filename)
+    origin_imgs = os.listdir(ORIGINDIR)
+    pp = PreProcess()
+    for filename in origin_imgs:
+        origin_path = os.path.join(ORIGINDIR, filename)
+        img = Image.open(origin_path)
+        new_rgba = pp.trans_la_to_rgba(img, filename)
+        vcode =  pp.cut_two_pics(new_rgba, filename)
+        # import pdb
+        # pdb.set_trace()
+        # pp.remove_interferline(new_rgba)
+
+        
+        
+
 
