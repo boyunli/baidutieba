@@ -25,33 +25,26 @@ logger = logging.getLogger('myspider')
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  
 
-class Post(object):
-
+class BaiduPoster(object):
     def __init__(self, username, password):
         self.base_url =  "http://tieba.baidu.com/f?kw=临高房产&ie=utf-8"
+        self.username = username
+        self.password = password
         self.session = requests.Session()  
-        # self._login(username, password)
-        # import pdb
-        # pdb.set_trace()
         try:
             self._get_cookies()
         except IOError as e:
             logger.error(e)
         if self._check_login():            
-            logger.debug('from cache...cookies...')
-            logger.debug(pprint.pformat(self.session.cookies))
+            logger.debug('from cache cookies:{}'.format(pprint.pformat(self.session.cookies)))
             self.post_data()
         else:
             # 防止cookie过期失效
             self.session.cookies.clear()
-            self._login(username, password)
-            self.post_message()
+            self._login()
+            self.post_data()
 
     def _check_login(self, page_html=None):
-        """验证是否登陆成功
-        Returns:
-            Boolean: 是否登陆成功
-        """
         res = self.session.get(self.base_url, headers=HEADERS, verify=False)
         if page_html:
             text = page_html
@@ -65,10 +58,6 @@ class Post(object):
         else:
             return False
 
-    def _get_tbs(self):
-        url_tbs = "http://tieba.baidu.com/dc/common/tbs"
-        return self.session.get(url_tbs, headers=HEADERS).json()["tbs"]
-
     def _get_cookies(self):
         """从文本中获得cookie
         """
@@ -77,7 +66,7 @@ class Post(object):
             cookies = json.load(f)
             self.session.cookies.update(cookies)
 
-    def _login(self, username, password):
+    def _login(self):
         # import pdb
         # pdb.set_trace()
         driver = webdriver.PhantomJS()
@@ -89,11 +78,11 @@ class Post(object):
         time.sleep(20)  #等页面加载完
         username_field = driver.find_element_by_id("TANGRAM__PSP_9__userName")   
         try:
-            username_field.send_keys(username)
+            username_field.send_keys(self.username)
         except Exception as e:
-            username_field.send_keys(username.decode("utf-8"))    #当用户名是以中文形式
+            username_field.send_keys(self.username.decode("utf-8"))    #当用户名是以中文形式
         passwd_field = driver.find_element_by_id("TANGRAM__PSP_9__password")
-        passwd_field.send_keys(password)
+        passwd_field.send_keys(self.password)
         login_button = driver.find_element_by_id("TANGRAM__PSP_9__submit")
         login_button.click()
         time.sleep(20)
@@ -108,9 +97,12 @@ class Post(object):
             logger.debug('login success')
         else:
             logger.debug('login failed')
-        logger.debug("login cookies: ")
-        logger.debug(pprint.pformat(login_cookies))
+        logger.debug('login cookies: {} '.format(pprint.pformat(login_cookies)))
         return login_cookies    
+    
+    def _get_tbs(self):
+        url_tbs = "http://tieba.baidu.com/dc/common/tbs"
+        return self.session.get(url_tbs, headers=HEADERS).json()["tbs"]
 
     def post_data(self, data=None):
         url_post = "https://tieba.baidu.com/f/commit/thread/add"
@@ -141,8 +133,7 @@ class Post(object):
             data = data
 
         res = self.session.post(url_post, data=data, headers=HEADERS, verify=False)
-        logger.debug("verify post cookies: ")
-        logger.debug(pprint.pformat(self.session.cookies.get_dict()))
+        logger.debug("verify post cookies: {}".format(pprint.pformat(self.session.cookies.get_dict())))
         res_text = res.json()
         # import pdb
         # pdb.set_trace()
@@ -172,8 +163,6 @@ class Post(object):
             logger.debug('vcode: {}'.format(vcode))
             data['vcode'] = vcode
             self.post_data(data)
-            # import pdb
-            # pdb.set_trace()
         else:
             with open('log/error_code.txt','a') as out:
                 out.write('*'*30 + str(datetime.datetime.now()))
@@ -187,8 +176,8 @@ class Post(object):
 if __name__ == "__main__":
     # login_name = raw_input("please input username:\n")
     # login_passwd = raw_input("please input password:\n")
-    login_name =  "狮子零零蛋123"
-    login_passwd = "19910414ll"
-    post = Post(login_name, login_passwd)
+    username =  "狮子零零蛋123"
+    password = "19910414ll"
+    post = BaiduPoster(username, password)
     
      
