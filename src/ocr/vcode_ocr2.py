@@ -1,13 +1,28 @@
 #coding:utf-8
 import os
-import cv2
+import sys
 import time
 import random
+import logging
+import logging.config
 
+import cv2
 import numpy as np
 # from matplotlib import pyplot as plt
 from PIL import Image,ImageEnhance,ImageFilter
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from spider.settings import LOGGING
 
+logging.config.dictConfig(LOGGING)
+logger = logging.getLogger('myocr')
+
+BASEDIR = os.path.dirname(os.path.abspath(__file__))
+VCODEDIR = os.path.join(BASEDIR, 'images/vcode/')
+BPPDIR = os.path.join(BASEDIR, 'images/bpp/')
+MOVE_TNTERFER = os.path.join(BASEDIR, 'images/move_interfer/')
+CUTDIR = os.path.join(BASEDIR, 'images/cut_single/')
+if not os.path.exists(CUTDIR):
+    os.makedirs(CUTDIR)
 
 class PreProcess(object):
     """description of class"""
@@ -16,30 +31,38 @@ class PreProcess(object):
         '''
         灰度化
         '''
+        logger.debug('start convert {} to gray...'.format(filename))
         GrayImage=cv2.cvtColor(Image,cv2.COLOR_BGR2GRAY)
+        logger.debug('has converted {} to gray...'.format(filename))
         return GrayImage
        
     def ConvertTo1Bpp(self,GrayImage,filename):
         '''
         二值化
         '''
+        logger.debug('start convert {gray} to 1bpp...'.format(gray=filename))
         Bpp=cv2.threshold(GrayImage,127,255,cv2.THRESH_BINARY)
-        cv2.imwrite('test/1.png',Bpp[1])
+        file_path = os.path.join(BPPDIR, filename)
+        # cv2.imwrite(file_path, Bpp[1])
+        cv2.imwrite('test/bpp.png', Bpp[1])
+        logger.debug('has converted {gray} to 1bpp...'.format(gray=filename))
         return Bpp[1]
 
-    def InterferLine(self,Bpp,filename):
-       
-        for i in range(0,76):
+    def remove_interferline(self,Bpp,filename):
+        '''
+        去干扰线
+        '''
+        logger.debug('start remove {filename} interferline...'.format(filename=filename))
+        for i in range(0, 52):
             for j in range(0,Bpp.shape[0]):    #Bpp.shape=(320L, 240L) 高、宽
                 Bpp[j][i]=255                  #白色
-        for i in range(161,Bpp.shape[1]):
+        for i in range(200,Bpp.shape[1]):
             for j in range(0,Bpp.shape[0]):
                 Bpp[j][i]=255        
         m=1
         n=1
-        import pdb
-        pdb.set_trace()
-        for i in range(76,161):
+      
+        for i in range(52,200):
             while(m<Bpp.shape[0]-1):
                 if Bpp[m][i]==0:
                     if Bpp[m+1][i]==0:
@@ -82,43 +105,78 @@ class PreProcess(object):
                 Bpp[n][i]=255
             #endif
         #endfor
-        cv2.imwrite('test/2.png',Bpp)
+        file_path = os.path.join(MOVE_TNTERFER, filename)
+        # cv2.imwrite(file_path, Bpp)
+        cv2.imwrite('test/inter.png', Bpp)
+        logger.debug('has removed {filename} interferline...'.format(filename=filename))
         return Bpp
 
-    def CutImage(self,Bpp,filename):
+    def cut_image(self, Bpp, filename):
+        '''
+        切图：采用二分法
+        '''
+        logger.debug('start cut {filename} to single vcode...'.format(filename=filename))
         outpath = 'test/'
-        b1=np.zeros((Bpp.shape[0],20))
-        for i in range(78,98):
+        # outpath = os.path.join(CUTDIR, filename)
+        # 先一分为二：每部分两个字
+        left = np.zeros((Bpp.shape[0], 78))
+        for i in range(43,121):
             for j in range(0,Bpp.shape[0]):
-                b1[j][i-78]=Bpp[j][i]
-        cv2.imwrite(outpath+filename.decode('gbk')[0].encode('gbk')+'_'+'%d' %(time.time()*1000)+str(random.randint(1000,9999))+'.png',b1)
+                left[j][i-43] = Bpp[j][i]
+        cv2.imwrite(outpath+'left_'+filename, left)
 
-        b2=np.zeros((Bpp.shape[0],19))
-        for i in range(99,118):
+        right = np.zeros((Bpp.shape[0],92))
+        for i in range(122,214):
             for j in range(0,Bpp.shape[0]):
-                b2[j][i-99]=Bpp[j][i]
-        cv2.imwrite(outpath+filename.decode('gbk')[1].encode('gbk')+'_'+'%d' %(time.time()*1000)+str(random.randint(1000,9999))+'.png',b2)
+                right[j][i-122] = Bpp[j][i]
+        cv2.imwrite(outpath+'right_'+filename,right)
+        # 再二分为四， 每部分一个字
+        left_1 = np.zeros((left.shape[0],42))
+        for i in range(0, 42):
+            for j in range(0,left.shape[0]):
+                left_1[j][i-0] = left[j][i]
+        cv2.imwrite(outpath+'left_1_'+filename,left_1)
 
-        b3=np.zeros((Bpp.shape[0],19))
-        for i in range(119,138):
-            for j in range(0,Bpp.shape[0]):
-                b3[j][i-119]=Bpp[j][i]
-        cv2.imwrite(outpath+filename.decode('gbk')[2].encode('gbk')+'_'+'%d' %(time.time()*1000)+str(random.randint(1000,9999))+'.png',b3)
+        left_2=np.zeros((left.shape[0],34))
+        for i in range(43, 77):
+            for j in range(0,left.shape[0]):
+                left_2[j][i-43]=left[j][i]
+        cv2.imwrite(outpath+'left_2_'+filename,left_2)
 
-        b4=np.zeros((Bpp.shape[0],19))
-        for i in range(139,158):
-            for j in range(0,Bpp.shape[0]):
-                b4[j][i-139]=Bpp[j][i]
-        cv2.imwrite(outpath+filename.decode('gbk')[3].encode('gbk')+'_'+'%d' %(time.time()*1000)+str(random.randint(1000,9999))+'.png',b4)
-        #return (b1,b2,b3,b4)
+        right_1=np.zeros((right.shape[0],42))
+        for i in range(0, 42):
+            for j in range(0,right.shape[0]):
+                right_1[j][i-0]=right[j][i]
+        cv2.imwrite(outpath+'right_1_'+filename,right_1)
 
+        right_2=np.zeros((right.shape[0],34))
+        for i in range(43, 77):
+            for j in range(0,right.shape[0]):
+                right_2[j][i-43]=right[j][i]
+        cv2.imwrite(outpath+'right_2_'+filename,right_2)
+
+        logger.debug('has cuted {filename} to single vcode...'.format(filename=filename))
+        return (left,right,left_1,left_2)
+    
+    def rotate_image(self, cut_image, filename):
+        pass
 
     
 if __name__ == '__main__':
-    PP=PreProcess()
-    filename = 'vcode_8.png'
+    vcodes = os.listdir(VCODEDIR)
+    PP = PreProcess()
+    # for filename in vcodes:
+    #     file_path = os.path.join(VCODEDIR, filename)
+    #     Img = cv2.imread(file_path)
+    #     GrayImage = PP.ConvertToGray(Img,filename)
+    #     Bpp = PP.ConvertTo1Bpp(GrayImage,filename)
+    #     bpp_new = PP.remove_interferline(Bpp,filename)
+    #     cut_image = PP.cut_image(bpp_new,filename)
+
+    filename = 'vcode_1622.png'
     Img = cv2.imread(filename)
     GrayImage=PP.ConvertToGray(Img,filename)
     Bpp=PP.ConvertTo1Bpp(GrayImage,filename)
-    Bpp_new=PP.InterferLine(Bpp,filename)
-    b=PP.CutImage(Bpp_new,filename)
+    bpp_new=PP.remove_interferline(Bpp,filename)
+    cut_image = PP.cut_image(bpp_new,filename)
+    rotate_image = PP.rotate_image(cut_image, filename)

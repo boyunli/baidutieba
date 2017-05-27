@@ -100,3 +100,5 @@ ENV/
 # mypy
 .mypy_cache/
 *.log
+src/ocr/images/cut_single/
+src/ocr/test/

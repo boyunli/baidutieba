@@ -65,8 +65,6 @@ class PreProcess(object):
         corr_region.save(corr_path)
         return vcode_region
 
-    
-
 if __name__ == '__main__':
     origin_imgs = os.listdir(ORIGINDIR)
     pp = PreProcess()
