@@ -20,9 +20,10 @@ BASEDIR = os.path.dirname(os.path.abspath(__file__))
 VCODEDIR = os.path.join(BASEDIR, 'images/vcode/')
 BPPDIR = os.path.join(BASEDIR, 'images/bpp/')
 MOVE_TNTERFER = os.path.join(BASEDIR, 'images/move_interfer/')
-CUTDIR = os.path.join(BASEDIR, 'images/cut_single/')
-if not os.path.exists(CUTDIR):
-    os.makedirs(CUTDIR)
+CUTED_SINGLEDIR = os.path.join(BASEDIR, 'images/cuted_single/')
+CUTED_HALFDIR = os.path.join(BASEDIR, 'images/cuted_half/')
+if not os.path.exists(CUTED_SINGLEDIR):
+    os.makedirs(CUTED_SINGLEDIR)
 
 class PreProcess(object):
     """description of class"""
@@ -43,12 +44,12 @@ class PreProcess(object):
         logger.debug('start convert {gray} to 1bpp...'.format(gray=filename))
         Bpp=cv2.threshold(GrayImage,127,255,cv2.THRESH_BINARY)
         file_path = os.path.join(BPPDIR, filename)
-        # cv2.imwrite(file_path, Bpp[1])
-        cv2.imwrite('test/bpp.png', Bpp[1])
+        cv2.imwrite(file_path, Bpp[1])
+        # cv2.imwrite('test/bpp.png', Bpp[1])
         logger.debug('has converted {gray} to 1bpp...'.format(gray=filename))
         return Bpp[1]
 
-    def remove_interferline(self,Bpp,filename):
+    def RemoveInterferLine(self,Bpp,filename):
         '''
         去干扰线
         '''
@@ -106,77 +107,80 @@ class PreProcess(object):
             #endif
         #endfor
         file_path = os.path.join(MOVE_TNTERFER, filename)
-        # cv2.imwrite(file_path, Bpp)
-        cv2.imwrite('test/inter.png', Bpp)
+        cv2.imwrite(file_path, Bpp)
+        # cv2.imwrite('test/inter.png', Bpp)
         logger.debug('has removed {filename} interferline...'.format(filename=filename))
         return Bpp
 
-    def cut_image(self, Bpp, filename):
+    def CutImage(self, Bpp, filename):
         '''
         切图：采用二分法
         '''
         logger.debug('start cut {filename} to single vcode...'.format(filename=filename))
-        outpath = 'test/'
-        # outpath = os.path.join(CUTDIR, filename)
+        # CUTED_SINGLEDIR = CUTED_HALFDIR = 'test/'
         # 先一分为二：每部分两个字
-        left = np.zeros((Bpp.shape[0], 78))
-        for i in range(43,121):
+        shotname, extension = os.path.splitext(filename)
+        left = np.zeros((Bpp.shape[0], 82))
+        for i in range(42,124):
             for j in range(0,Bpp.shape[0]):
                 left[j][i-43] = Bpp[j][i]
-        cv2.imwrite(outpath+'left_'+filename, left)
+        cv2.imwrite(CUTED_HALFDIR+shotname+'_left_'+ extension, left)
 
         right = np.zeros((Bpp.shape[0],92))
         for i in range(122,214):
             for j in range(0,Bpp.shape[0]):
                 right[j][i-122] = Bpp[j][i]
-        cv2.imwrite(outpath+'right_'+filename,right)
+        cv2.imwrite(CUTED_HALFDIR+shotname+'_right_'+ extension, right)
         # 再二分为四， 每部分一个字
-        left_1 = np.zeros((left.shape[0],42))
-        for i in range(0, 42):
+        left_1 = np.zeros((left.shape[0],40))
+        for i in range(0, 40):
             for j in range(0,left.shape[0]):
                 left_1[j][i-0] = left[j][i]
-        cv2.imwrite(outpath+'left_1_'+filename,left_1)
+        cv2.imwrite(CUTED_SINGLEDIR+shotname+ '_left_1_'+extension, left_1)
 
-        left_2=np.zeros((left.shape[0],34))
-        for i in range(43, 77):
+        left_2=np.zeros((left.shape[0],40))
+        for i in range(41, 81):
             for j in range(0,left.shape[0]):
-                left_2[j][i-43]=left[j][i]
-        cv2.imwrite(outpath+'left_2_'+filename,left_2)
+                left_2[j][i-41]=left[j][i]
+        cv2.imwrite(CUTED_SINGLEDIR+shotname+ '_left_2_'+extension, left_2)
 
-        right_1=np.zeros((right.shape[0],42))
-        for i in range(0, 42):
+        right_1=np.zeros((right.shape[0],40))
+        for i in range(0, 40):
             for j in range(0,right.shape[0]):
                 right_1[j][i-0]=right[j][i]
-        cv2.imwrite(outpath+'right_1_'+filename,right_1)
+        cv2.imwrite(CUTED_SINGLEDIR+shotname+ '_right_1_'+extension, right_1)
 
-        right_2=np.zeros((right.shape[0],34))
-        for i in range(43, 77):
+        right_2=np.zeros((right.shape[0],40))
+        for i in range(41, 80):
             for j in range(0,right.shape[0]):
-                right_2[j][i-43]=right[j][i]
-        cv2.imwrite(outpath+'right_2_'+filename,right_2)
+                right_2[j][i-41]=right[j][i]
+        cv2.imwrite(CUTED_SINGLEDIR+shotname+ '_right_2_'+extension, right_2)
 
+        cuted_image = [left, right, left_1, left_2, right_1, right_2]
         logger.debug('has cuted {filename} to single vcode...'.format(filename=filename))
-        return (left,right,left_1,left_2)
+        return cuted_image
     
-    def rotate_image(self, cut_image, filename):
+    def RotateImage(self, cuted_image, filename):
+        '''
+        扭转字体
+        '''
         pass
-
     
 if __name__ == '__main__':
     vcodes = os.listdir(VCODEDIR)
     PP = PreProcess()
-    # for filename in vcodes:
-    #     file_path = os.path.join(VCODEDIR, filename)
-    #     Img = cv2.imread(file_path)
-    #     GrayImage = PP.ConvertToGray(Img,filename)
-    #     Bpp = PP.ConvertTo1Bpp(GrayImage,filename)
-    #     bpp_new = PP.remove_interferline(Bpp,filename)
-    #     cut_image = PP.cut_image(bpp_new,filename)
+    for filename in vcodes:
+        file_path = os.path.join(VCODEDIR, filename)
+        Img = cv2.imread(file_path)
+        GrayImage = PP.ConvertToGray(Img,filename)
+        Bpp = PP.ConvertTo1Bpp(GrayImage,filename)
+        remove_interferline = PP.RemoveInterferLine(Bpp,filename)
+        cut_image = PP.CutImage(remove_interferline,filename)
 
-    filename = 'vcode_1622.png'
-    Img = cv2.imread(filename)
-    GrayImage=PP.ConvertToGray(Img,filename)
-    Bpp=PP.ConvertTo1Bpp(GrayImage,filename)
-    bpp_new=PP.remove_interferline(Bpp,filename)
-    cut_image = PP.cut_image(bpp_new,filename)
-    rotate_image = PP.rotate_image(cut_image, filename)
+    # filename = 'vcode_1622.png'
+    # Img = cv2.imread(filename)
+    # GrayImage=PP.ConvertToGray(Img,filename)
+    # Bpp=PP.ConvertTo1Bpp(GrayImage,filename)
+    # bpp_new=PP.RemoveInterferLine(Bpp,filename)
+    # cuted_image = PP.CutImage(bpp_new,filename)
+    # rotate_image = PP.RotateImage(cuted_image, filename)
