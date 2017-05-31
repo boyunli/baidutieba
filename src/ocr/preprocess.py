@@ -114,7 +114,7 @@ class PreProcess(object):
 
     def CutImage(self, Bpp, filename):
         '''
-        切图：采用二分法
+        切图并标准化：采用二分法
         '''
         logger.debug('start cut {filename} to single vcode...'.format(filename=filename))
         # CUTED_SINGLEDIR = CUTED_HALFDIR = 'test/'
