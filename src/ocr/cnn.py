@@ -17,7 +17,7 @@ nb_classes = 32
 nb_epoch = 12
 
 # input image dimensions
-img_rows, img_cols = 28, 28
+img_rows, img_cols = 28,28
 # number of convolutional filters to use
 nb_filters = 32
 # size of pooling area for max pooling

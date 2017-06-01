@@ -124,37 +124,37 @@ class PreProcess(object):
         for i in range(42,124):
             for j in range(0,Bpp.shape[0]):
                 left[j][i-43] = Bpp[j][i]
-        cv2.imwrite(CUTED_HALFDIR+shotname+'_left_'+ extension, left)
+        cv2.imwrite(CUTED_HALFDIR+shotname+'1'+ extension, left)
 
         right = np.zeros((Bpp.shape[0],92))
         for i in range(122,214):
             for j in range(0,Bpp.shape[0]):
                 right[j][i-122] = Bpp[j][i]
-        cv2.imwrite(CUTED_HALFDIR+shotname+'_right_'+ extension, right)
+        cv2.imwrite(CUTED_HALFDIR+shotname+'2'+ extension, right)
         # 再二分为四， 每部分一个字
         left_1 = np.zeros((left.shape[0],40))
         for i in range(0, 40):
             for j in range(0,left.shape[0]):
                 left_1[j][i-0] = left[j][i]
-        cv2.imwrite(CUTED_SINGLEDIR+shotname+ '_left_1_'+extension, left_1)
+        cv2.imwrite(CUTED_SINGLEDIR+shotname+ '11'+extension, left_1)
 
         left_2=np.zeros((left.shape[0],40))
         for i in range(41, 81):
             for j in range(0,left.shape[0]):
                 left_2[j][i-41]=left[j][i]
-        cv2.imwrite(CUTED_SINGLEDIR+shotname+ '_left_2_'+extension, left_2)
+        cv2.imwrite(CUTED_SINGLEDIR+shotname+ '12'+extension, left_2)
 
         right_1=np.zeros((right.shape[0],40))
         for i in range(0, 40):
             for j in range(0,right.shape[0]):
                 right_1[j][i-0]=right[j][i]
-        cv2.imwrite(CUTED_SINGLEDIR+shotname+ '_right_1_'+extension, right_1)
+        cv2.imwrite(CUTED_SINGLEDIR+shotname+ '21'+extension, right_1)
 
         right_2=np.zeros((right.shape[0],40))
         for i in range(41, 80):
             for j in range(0,right.shape[0]):
                 right_2[j][i-41]=right[j][i]
-        cv2.imwrite(CUTED_SINGLEDIR+shotname+ '_right_2_'+extension, right_2)
+        cv2.imwrite(CUTED_SINGLEDIR+shotname+ '22'+extension, right_2)
 
         cuted_image = [left, right, left_1, left_2, right_1, right_2]
         logger.debug('has cuted {filename} to single vcode...'.format(filename=filename))
