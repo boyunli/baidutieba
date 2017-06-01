@@ -22,6 +22,7 @@ BPPDIR = os.path.join(BASEDIR, 'images/bpp/')
 MOVE_TNTERFER = os.path.join(BASEDIR, 'images/move_interfer/')
 CUTED_SINGLEDIR = os.path.join(BASEDIR, 'images/cuted_single/')
 CUTED_HALFDIR = os.path.join(BASEDIR, 'images/cuted_half/')
+TRAINDIR = os.path.join(BASEDIR, 'train/')
 if not os.path.exists(CUTED_SINGLEDIR):
     os.makedirs(CUTED_SINGLEDIR)
 
@@ -125,6 +126,8 @@ class PreProcess(object):
             for j in range(0,Bpp.shape[0]):
                 left[j][i-43] = Bpp[j][i]
         cv2.imwrite(CUTED_HALFDIR+shotname+'1'+ extension, left)
+        left_32 = cv2.resize(left,(32,32), interpolation=cv2.INTER_CUBIC)
+        cv2.imwrite(TRAINDIR+shotname+'1'+ extension, left_32)
 
         right = np.zeros((Bpp.shape[0],92))
         for i in range(122,214):
@@ -156,15 +159,16 @@ class PreProcess(object):
                 right_2[j][i-41]=right[j][i]
         cv2.imwrite(CUTED_SINGLEDIR+shotname+ '22'+extension, right_2)
 
-        cuted_image = [left, right, left_1, left_2, right_1, right_2]
+        cuted_images = [left, right, left_1, left_2, right_1, right_2]
         logger.debug('has cuted {filename} to single vcode...'.format(filename=filename))
-        return cuted_image
+        return cuted_images
     
     def RotateImage(self, cuted_image, filename):
         '''
         扭转字体
         '''
         pass
+    
     
 if __name__ == '__main__':
     vcodes = os.listdir(VCODEDIR)
@@ -175,7 +179,7 @@ if __name__ == '__main__':
         GrayImage = PP.ConvertToGray(Img,filename)
         Bpp = PP.ConvertTo1Bpp(GrayImage,filename)
         remove_interferline = PP.RemoveInterferLine(Bpp,filename)
-        cut_image = PP.CutImage(remove_interferline,filename)
+        cut_images = PP.CutImage(remove_interferline,filename)
 
     # filename = 'vcode_1622.png'
     # Img = cv2.imread(filename)
