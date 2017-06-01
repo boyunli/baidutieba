@@ -25,7 +25,7 @@ def load_data():
 
 
 def load_validation():
-	data= np.empty((1593,1,85,40),dtype="float32")
+	data= np.empty((1593,1,28,28),dtype="float32")
 	label= np.empty((1593,),dtype="uint8")
 	imgs= os.listdir("./validation")
 	num= len(imgs)

@@ -17,7 +17,7 @@ from settings import HEADERS
 '''
 
 def get_cookies():
-    with open("../cookies/login_cookies.json") as f:
+    with open("../../cookies/login_cookies.json") as f:
             cookies = json.load(f)
 
 
@@ -33,7 +33,7 @@ class GetVcode(threading.Thread):
             # import pdb
             # pdb.set_trace()
             resp = requests.get(self.url, headers=HEADERS, verify=False, cookies=self.cookies)
-            with open('../ocr/images/vcode_{}.png'\
+            with open('../ocr/images/vcode/vcode_{}.png'\
                             .format(random.randint(0, 10000)),
                         'wb') as out:
                 out.write(resp.content)
