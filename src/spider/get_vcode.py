@@ -33,7 +33,7 @@ class GetVcode(threading.Thread):
             # import pdb
             # pdb.set_trace()
             resp = requests.get(self.url, headers=HEADERS, verify=False, cookies=self.cookies)
-            with open('../ocr/images/vcode/vcode_{}.png'\
+            with open('../ocr/images/origin/vcode_{}.png'\
                             .format(random.randint(0, 10000)),
                         'wb') as out:
                 out.write(resp.content)

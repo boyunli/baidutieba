@@ -23,7 +23,7 @@ from settings import mouse_crack, VCODE_DIC, HEADERS, LOGGING
 logging.config.dictConfig(LOGGING)
 logger = logging.getLogger('myspider')
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))  
 
 class BaiduPoster(object):
     def __init__(self, username, password):
@@ -91,7 +91,7 @@ class BaiduPoster(object):
         login_cookies = {item["name"] : item["value"] for item in cookies}     
         page_html = driver.page_source
         if self._check_login(page_html):
-            with open("../cookies/login_cookies.json", "w") as f:
+            with open("./cookies/login_cookies.json", "w") as f:
                 json.dump(login_cookies, f)     
             self.session.cookies.update(login_cookies)
             logger.debug('login success')

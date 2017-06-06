@@ -64,7 +64,7 @@ class PreProcess(object):
         m=1
         n=1
       
-        for i in range(52,200):
+        for i in range(52, 240):
             while(m<Bpp.shape[0]-1):
                 if Bpp[m][i]==0:
                     if Bpp[m+1][i]==0:
@@ -121,6 +121,8 @@ class PreProcess(object):
         # CUTED_SINGLEDIR = CUTED_HALFDIR = 'test/'
         # 先一分为二：每部分两个字
         shotname, extension = os.path.splitext(filename)
+        import pdb
+        pdb.set_trace()
         left = np.zeros((Bpp.shape[0], 82))
         for i in range(42,124):
             for j in range(0,Bpp.shape[0]):
@@ -154,9 +156,9 @@ class PreProcess(object):
         cv2.imwrite(CUTED_SINGLEDIR+shotname+ '21'+extension, right_1)
 
         right_2=np.zeros((right.shape[0],40))
-        for i in range(41, 80):
+        for i in range(38, 78):
             for j in range(0,right.shape[0]):
-                right_2[j][i-41]=right[j][i]
+                right_2[j][i-38]=right[j][i]
         cv2.imwrite(CUTED_SINGLEDIR+shotname+ '22'+extension, right_2)
 
         cuted_images = [left, right, left_1, left_2, right_1, right_2]
