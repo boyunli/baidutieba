@@ -105,4 +105,4 @@ src/ocr/test/
 train/
 src/ocr/mnist/data/
 src/ocr/mnist/HWDB1.1trn_gnt_P1/
-src/ocr/mnist/HWDB1.1tst_gnt/
+src/ocr/mnist/HWDB1.1tst_gnt/*.py~

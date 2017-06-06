@@ -17,7 +17,7 @@ from settings import HEADERS
 '''
 
 def get_cookies():
-    with open("../../cookies/login_cookies.json") as f:
+    with open("./cookies/login_cookies.json") as f:
             cookies = json.load(f)
 
 
@@ -29,7 +29,7 @@ class GetVcode(threading.Thread):
         
     def run(self):
         global TOTAL
-        for i in xrange(3):
+        for i in xrange(30):
             # import pdb
             # pdb.set_trace()
             resp = requests.get(self.url, headers=HEADERS, verify=False, cookies=self.cookies)
