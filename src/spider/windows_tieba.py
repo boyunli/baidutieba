@@ -1,9 +1,4 @@
 # coding:utf-8
-'''
-1、利用 selenium +chrome(windows下) 模拟登录，获得登录cookies(已获得)
-2、再跟踪从登录到发文的过程中cookie的变化情况，拿到最终cookies(成功)
-3、如果跳过第2步（已注释的代码实现了其功能），直接以login_cookies能发文成功，则跳过第2步
-'''
 
 import time
 import json
@@ -175,8 +170,6 @@ class Post(object):
 
 
 if __name__ == "__main__":
-    # login_name = raw_input("please input username:\n")
-    # login_passwd = raw_input("please input password:\n")
-    login_name =  "狮子零零蛋123"
-    login_passwd = "19910414ll"
+    login_name = raw_input("please input username:\n")
+    login_passwd = raw_input("please input password:\n")
     post = Post(login_name, login_passwd)

@@ -1,9 +1,4 @@
 # coding:utf-8
-'''
-1、利用 selenium +phantomjs(Linuxs字符终端下) 模拟登录，获得登录cookies(已获得)
-2、再跟踪从登录到发文的过程中cookie的变化情况，拿到最终cookies(成功)
-3、如果跳过第2步（已注释的代码实现了其功能），直接以login_cookies能发文成功，则跳过第2步
-'''
 
 import time
 import json
@@ -135,8 +130,6 @@ class BaiduPoster(object):
         res = self.session.post(url_post, data=data, headers=HEADERS, verify=False)
         logger.debug("verify post cookies: {}".format(pprint.pformat(self.session.cookies.get_dict())))
         res_text = res.json()
-        # import pdb
-        # pdb.set_trace()
         if res_text['err_code'] == 0:
             tid = res_text['data']['tid']   #帖子ID
             logger.debug("post success, tid is {}".format(tid))
@@ -174,10 +167,8 @@ class BaiduPoster(object):
 
 
 if __name__ == "__main__":
-    # login_name = raw_input("please input username:\n")
-    # login_passwd = raw_input("please input password:\n")
-    username =  "狮子零零蛋123"
-    password = "19910414ll"
+    username = raw_input("please input username:\n")
+    password = raw_input("please input password:\n")
     post = BaiduPoster(username, password)
     
      
