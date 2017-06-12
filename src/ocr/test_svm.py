@@ -78,7 +78,8 @@ if __name__ == '__main__':
     #    img1 = image.convert('1')  # 图片二值化
     #    img1.save(img_path)
     #    get_feature(imgname, img1)
-    train_svm_model()
+    #train_svm_model()
+    svm_model_test()
 
 
 
